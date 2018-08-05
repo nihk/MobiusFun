@@ -4,8 +4,8 @@ import com.spotify.mobius.Effects
 import com.spotify.mobius.Next
 import com.spotify.mobius.Update
 
-// The Update function performans any combination of updating the Model, triggering Effects, and doing nothing
-// Model updates here will be rendered in the UI host
+// The Update function performs any combination of updating the Model, triggering Effects, and doing nothing
+// Model updates here will be propogated to the UI host
 class Update : Update<Model, Event, Effect> {
 
     override fun update(
