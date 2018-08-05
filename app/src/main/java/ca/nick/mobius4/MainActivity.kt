@@ -77,9 +77,9 @@ class MainActivity : AppCompatActivity() {
             .subscribe { render(it) }
 
         val increment: Observable<CounterEvent> = RxView.clicks(increment)
-            .map { Increment }
+            .map { Increment as CounterEvent }
         val decrement: Observable<CounterEvent> = RxView.clicks(decrement)
-            .map { Decrement }
+            .map { Decrement as CounterEvent }
 
         return Observable.merge(increment, decrement)
             .doOnDispose(disposable::dispose)
