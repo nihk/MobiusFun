@@ -4,4 +4,4 @@ package ca.nick.mobius4
 sealed class Event
 object Increment : Event()
 object Decrement : Event()
-object DoneLoading : Event()
+data class DoneCalculating(val newNumber: Int) : Event()

@@ -21,12 +21,12 @@ class MainActivity : AppCompatActivity() {
     companion object {
         val TAG: String = MainActivity::class.java.simpleName
         const val KEY_COUNT: String = "key_count"
-        const val KEY_IS_LOADING: String = "key_is_loading"
+        const val KEY_IS_CALCULATING: String = "key_is_calculating"
     }
 
     val effectsHandler: ObservableTransformer<Effect, Event> =
         RxMobius.subtypeEffectHandler<Effect, Event>()
-            .addTransformer(ShortDelay::class.java, ::startLoading)
+            .addTransformer(PerformCalculation::class.java, ::performCalculation)
             .build()
 
     val loopFactory: MobiusLoop.Factory<Model, Event, Effect> =
@@ -39,12 +39,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         controller.connect(RxConnectables.fromTransformer(::connectViews))
 
         savedInstanceState?.let {
             val count: Int = it.getInt(KEY_COUNT)
-            val isLoading: Boolean = it.getBoolean(KEY_IS_LOADING)
-            controller.replaceModel(Model(count, isLoading))
+            val isCalculating: Boolean = it.getBoolean(KEY_IS_CALCULATING)
+            controller.replaceModel(Model(count, isCalculating))
         }
     }
 
@@ -66,8 +67,8 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         controller.model.apply {
-            outState.putInt(KEY_COUNT, count)
-            outState.putBoolean(KEY_IS_LOADING, isLoading)
+            outState.putInt(KEY_COUNT, number)
+            outState.putBoolean(KEY_IS_CALCULATING, isCalculating)
         }
     }
 
@@ -87,25 +88,26 @@ class MainActivity : AppCompatActivity() {
 
     fun render(model: Model) {
         model.apply {
-            renderLoading(isLoading)
-            renderCounterText(model.count)
+            renderCalculating(isCalculating)
+            renderCounterText(model.number)
         }
     }
 
-    fun renderLoading(isLoading: Boolean) {
-        progressBar.visibility = if (isLoading) View.VISIBLE else View.INVISIBLE
-        counter.visibility = if (isLoading) View.INVISIBLE else View.VISIBLE
-        increment.isEnabled = !isLoading
-        decrement.isEnabled = !isLoading
+    fun renderCalculating(isCalculating: Boolean) {
+        progressBar.visibility = if (isCalculating) View.VISIBLE else View.INVISIBLE
+        counter.visibility = if (isCalculating) View.INVISIBLE else View.VISIBLE
+        increment.isEnabled = !isCalculating
+        decrement.isEnabled = !isCalculating
     }
 
     fun renderCounterText(value: Int) {
         counter.text = value.toString()
     }
 
-    fun startLoading(startLoading: Observable<ShortDelay>): Observable<Event> {
-        return startLoading
+    fun performCalculation(performCalculation: Observable<PerformCalculation>): Observable<Event> {
+        return performCalculation
             .delay(1, TimeUnit.SECONDS)
-            .map { DoneLoading }
+            .map { it.current + it.add }
+            .map { DoneCalculating(newNumber = it) }
     }
 }

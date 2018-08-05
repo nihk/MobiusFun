@@ -9,9 +9,23 @@ class Update : Update<Model, Event, Effect> {
     override fun update(
         model: Model,
         event: Event
-    ): Next<Model, Effect> = when (event) {
-        is Increment -> Next.next(model.copy(count = model.count + 1, isLoading = true), Effects.effects(ShortDelay))
-        is Decrement -> Next.next(model.copy(count = model.count - 1, isLoading = true), Effects.effects(ShortDelay))
-        is DoneLoading -> Next.next(model.copy(isLoading = false))
-    }
+    ): Next<Model, Effect> =
+        when (event) {
+            is Increment -> Next.next(
+                model.copy(isCalculating = true),
+                Effects.effects(PerformCalculation(model.number, 1))
+            )
+
+            is Decrement -> Next.next(
+                model.copy(isCalculating = true),
+                Effects.effects(PerformCalculation(model.number, -1))
+            )
+
+            is DoneCalculating -> Next.next(
+                model.copy(
+                    number = event.newNumber,
+                    isCalculating = false
+                )
+            )
+        }
 }
