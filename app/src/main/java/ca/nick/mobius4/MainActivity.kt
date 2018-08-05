@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import com.jakewharton.rxbinding2.view.RxView
+import com.spotify.mobius.Connectable
 import com.spotify.mobius.MobiusLoop
 import com.spotify.mobius.android.AndroidLogger
 import com.spotify.mobius.android.MobiusAndroid
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     val effectsHandler: ObservableTransformer<Effect, Event> =
         RxMobius.subtypeEffectHandler<Effect, Event>()
-            .addTransformer(PerformCalculation::class.java, ::performCalculation)
+            .addTransformer(PerformCalculation::class.java) { performCalculation(it) }
             .build()
 
     val loopFactory: MobiusLoop.Factory<Model, Event, Effect> =
@@ -40,7 +41,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        controller.connect(RxConnectables.fromTransformer(::connectViews))
+        val connectable: Connectable<Model, Event> = RxConnectables.fromTransformer { connectViews(it) }
+        controller.connect(connectable)
 
         savedInstanceState?.let {
             val count: Int = it.getInt(KEY_COUNT)
@@ -83,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             .map { Decrement as Event }
 
         return Observable.merge(increment, decrement)
-            .doOnDispose(disposable::dispose)
+            .doOnDispose { disposable.dispose() }
     }
 
     fun render(model: Model) {
