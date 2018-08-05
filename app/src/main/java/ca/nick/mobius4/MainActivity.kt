@@ -24,17 +24,17 @@ class MainActivity : AppCompatActivity() {
         const val KEY_IS_LOADING: String = "key_is_loading"
     }
 
-    val effectsHandler: ObservableTransformer<CounterEffect, CounterEvent> =
-        RxMobius.subtypeEffectHandler<CounterEffect, CounterEvent>()
-            .addTransformer(StartLoading::class.java, ::startLoading)
+    val effectsHandler: ObservableTransformer<Effect, Event> =
+        RxMobius.subtypeEffectHandler<Effect, Event>()
+            .addTransformer(ShortDelay::class.java, ::startLoading)
             .build()
 
-    val loopFactory: MobiusLoop.Factory<CounterModel, CounterEvent, CounterEffect> =
-        RxMobius.loop(CounterUpdate(), effectsHandler)
-            .logger(AndroidLogger<CounterModel, CounterEvent, CounterEffect>(TAG))
+    val loopFactory: MobiusLoop.Factory<Model, Event, Effect> =
+        RxMobius.loop(Update(), effectsHandler)
+            .logger(AndroidLogger<Model, Event, Effect>(TAG))
 
-    val controller: MobiusLoop.Controller<CounterModel, CounterEvent> =
-        MobiusAndroid.controller(loopFactory, CounterModel())
+    val controller: MobiusLoop.Controller<Model, Event> =
+        MobiusAndroid.controller(loopFactory, Model())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         savedInstanceState?.let {
             val count: Int = it.getInt(KEY_COUNT)
             val isLoading: Boolean = it.getBoolean(KEY_IS_LOADING)
-            controller.replaceModel(CounterModel(count, isLoading))
+            controller.replaceModel(Model(count, isLoading))
         }
     }
 
@@ -71,21 +71,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun connectViews(models: Observable<CounterModel>): Observable<CounterEvent> {
+    fun connectViews(models: Observable<Model>): Observable<Event> {
         val disposable: Disposable = models
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { render(it) }
 
-        val increment: Observable<CounterEvent> = RxView.clicks(increment)
-            .map { Increment as CounterEvent }
-        val decrement: Observable<CounterEvent> = RxView.clicks(decrement)
-            .map { Decrement as CounterEvent }
+        val increment: Observable<Event> = RxView.clicks(increment)
+            .map { Increment as Event }
+        val decrement: Observable<Event> = RxView.clicks(decrement)
+            .map { Decrement as Event }
 
         return Observable.merge(increment, decrement)
             .doOnDispose(disposable::dispose)
     }
 
-    fun render(model: CounterModel) {
+    fun render(model: Model) {
         model.apply {
             renderLoading(isLoading)
             renderCounterText(model.count)
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         counter.text = value.toString()
     }
 
-    fun startLoading(startLoading: Observable<StartLoading>): Observable<CounterEvent> {
+    fun startLoading(startLoading: Observable<ShortDelay>): Observable<Event> {
         return startLoading
             .delay(1, TimeUnit.SECONDS)
             .map { DoneLoading }
