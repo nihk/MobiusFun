@@ -4,6 +4,7 @@ import com.spotify.mobius.Effects
 import com.spotify.mobius.Next
 import com.spotify.mobius.Update
 
+// Updates the model based on Events and optionally triggers Effects
 class Update : Update<Model, Event, Effect> {
 
     override fun update(
