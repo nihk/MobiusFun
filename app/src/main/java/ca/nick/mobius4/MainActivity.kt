@@ -109,7 +109,6 @@ class MainActivity : AppCompatActivity() {
     fun performCalculation(performCalculation: Observable<PerformCalculation>): Observable<Event> {
         return performCalculation
             .delay(1, TimeUnit.SECONDS)
-            .map { it.current + it.add }
-            .map { DoneCalculating(newNumber = it) }
+            .map { DoneCalculating(newNumber = it.current + it.addAmount) }
     }
 }
